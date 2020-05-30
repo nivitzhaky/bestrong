@@ -1,0 +1,230 @@
+
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# https://www.playframework.com/documentation/latest/ScalaRouting
+# ~~~~
+
+###
+#  summary: login
+#  parameters:
+#    - name: body
+#      schema:
+#        $ref: '#/definitions/controllers.UserPass'
+#  responses:
+#    200:
+#      description: success
+#    404:
+#      description: failed
+###
+POST     /api/authenticate                           controllers.UserController.login
+
+
+###
+#  summary: use this to verify the token for user
+#  parameters:
+#    - name: body
+#      schema:
+#        $ref: '#/definitions/persistence.UserToken'
+#  responses:
+#    200:
+#      description: success
+#    404:
+#      description: failed
+###
+POST     /api/authenticate/verify                           controllers.UserController.verifylogin
+
+
+###
+#  summary: NOTE! do not allow this type of registration if referral is not defined in query params (and pass it to the API)
+#  parameters:
+#    - name: body
+#      schema:
+#        $ref: '#/definitions/controllers.UserPassRef'
+#  responses:
+#    200:
+#      description: success
+#    406:
+#      description: referal must be a valid user
+#    409:
+#      description: username taken
+###
+POST     /api/register                           controllers.UserController.register
+
+
+
+###
+#  summary: get user details, valid only for same user as current user (checked by token)
+#  parameters:
+#    - name: token
+#      in: header
+#      type: string
+#      required: true
+#  responses:
+#    200:
+#      description: success
+###
+GET     /api/users/:id                           controllers.UserController.getUser(id)
+
+
+###
+#  summary: add campaign to provider
+#  parameters:
+#    - name: body
+#      schema:
+#        $ref: '#/definitions/persistence.ObligationUI'
+#    - name: token
+#      in: header
+#      type: string
+#      required: true
+#  responses:
+#    200:
+#      description: success
+###
+POST     /api/users/:id/obligations                           controllers.UserController.addObligation(id)
+
+
+###
+#  summary: add campaign to provider
+#  parameters:
+#    - name: body
+#      schema:
+#        $ref: '#/definitions/persistence.UserMizvaUI'
+#    - name: token
+#      in: header
+#      type: string
+#      required: true
+#  responses:
+#    200:
+#      description: success
+###
+PUT     /api/users/:id/mizva                           controllers.UserController.addUserMizva(id)
+
+
+###
+#  summary: get user details, valid only for same user as current user (checked by token)
+#  parameters:
+#    - name: token
+#      in: header
+#      type: string
+#      required: true
+#  responses:
+#    200:
+#      description: success
+###
+GET     /api/users/:id/obligations                           controllers.UserController.getObligations(id)
+
+
+###
+#  summary: add campaign to provider
+#  parameters:
+#    - name: body
+#      schema:
+#        $ref: '#/definitions/persistence.Mizva'
+#    - name: token
+#      in: header
+#      type: string
+#      required: true
+#  responses:
+#    200:
+#      description: success
+###
+POST     /api/mizvas                           controllers.UserController.addMizva()
+
+###
+#  summary: get user details, valid only for same user as current user (checked by token)
+#  parameters:
+#    - name: token
+#      in: header
+#      type: string
+#      required: true
+#  responses:
+#    200:
+#      description: success
+###
+GET     /api/mizvas                           controllers.UserController.getMizvas()
+
+
+
+
+
+###
+#  summary: works only for current user identify by token
+#  parameters:
+#    - name: body
+#      schema:
+#        $ref: '#/definitions/controllers.UserUpdate'
+#    - name: token
+#      in: header
+#      type: string
+#      required: true
+#    - name: otp
+#      in: header
+#      type: string
+#      required: true
+#  responses:
+#    200:
+#      description: success
+###
+POST     /api/users/:id                           controllers.UserController.saveUserDetails(id)
+
+
+
+###
+#  summary: works only for current user identify by token
+#  parameters:
+#    - name: body
+#      schema:
+#        $ref: '#/definitions/controllers.ImageUrl'
+#    - name: token
+#      in: header
+#      type: string
+#      required: true
+#  responses:
+#    200:
+#      description: success
+###
+POST     /api/users/:id/images                           controllers.UserController.saveUserImage(id)
+
+###
+#  summary: works only for current user identify by token
+#  parameters:
+#    - name: body
+#      schema:
+#        $ref: '#/definitions/controllers.UpdatePassword'
+#    - name: otp
+#      in: header
+#      type: string
+#      required: true
+#  responses:
+#    200:
+#      description: success
+###
+POST     /api/users/:id/resetpassword                           controllers.UserController.resetPassword(id)
+
+
+
+
+
+
+
+### NoDocs ###
+#POST  /api/images/:filename           controllers.UserController.upload(filename)
+
+### NoDocs ###
+#POST     /api/users/:id/card                           controllers.UserController.saveCreditCard(id)
+
+### NoDocs ###
+GET     /                           controllers.UserController.index
+
+### NoDocs ###
+GET   /docs/swagger-ui/*file        controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
+
+### NoDocs ###
+GET   /assets/*file                 controllers.Assets.versioned(path="/public", file: Asset)
+
+### NoDocs ###
+#GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+
+
+### NoDocs ###
+OPTIONS   /*wholepath     controllers.UserController.options(wholepath)
