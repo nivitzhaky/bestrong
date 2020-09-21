@@ -69,10 +69,14 @@ class UserPostgresPersistence (db1 : String, user: String, password : String, sc
     val rs = gconn.createStatement().executeQuery(s"select * from user_mizvas where username = '$user'")
     while (rs.next()) {
 
-      val cur : UserMizvaUI = getFromJson(rs.getString("data"))
       res+=
-        UserMizvaOutUI(rs.getString("id"),rs.getString("reported"),
-            cur.mizva, cur.extraInfo)
+        UserMizvaOutUI(rs.getString("id"),rs.getString("created"),
+          rs.getString("mizva"), Some(MizvaExtraInfo(
+            Some(rs.getInt("duration")),
+            Some(rs.getInt("quality")),
+            Some(rs.getString("notes"))
+
+          )))
 
     }
     rs.close()
