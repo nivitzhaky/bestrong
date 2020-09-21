@@ -82,7 +82,7 @@ case class LongLat(longitude: Double, latitude: Double)
 //  val db: Database = Database.getInstance()
 
   implicit val formats = new DefaultFormats {}
-  val appPersistence  = new UserPostgresPersistence("postgres","postgres","limor567","public", None, port = "2435")
+  val appPersistence  = new UserPostgresPersistence("postgres","postgres","postgres1","public", None, port = "2345")
                          //new UserPostgresPersistence("postgres","postgres","postgres")
                          //new UserMongoPersistence(DBName.publish)
   //val mongoUrlPersistence = new UrlMongoPersistence(DBName.publish)
@@ -97,6 +97,13 @@ case class LongLat(longitude: Double, latitude: Double)
       val provider = appPersistence.addUserMizva(user,data)
       Ok(Json.obj()).withHeaders(headers: _*)
     },curUser= Some(user))
+  }
+
+  def getUserMizvas(user : String) = Action { implicit request =>
+    safeAny (request , {
+      val res = appPersistence.getUserMizvas(user)
+      Ok(Extraction.decompose(res)).withHeaders(headers: _*)
+    },curUser= None)
   }
 
   def addObligation(user : String) = Action(json4s.json) { implicit request =>

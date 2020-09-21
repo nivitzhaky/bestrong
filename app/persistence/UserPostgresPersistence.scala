@@ -37,11 +37,11 @@ case class AcceptCampaignUI(campaign_id: String , username :  String)
 case class NotificationNew(_id : String, username : String, notification_user : Option[String], message : String, time : Long)
 case class Mizva(_id : String, name : String, reminderHour : Option[String], order : Integer)
 case class ExtraInfo(days: Option[String], duration : Option[Integer], notes : Option[String] )
-case class MizvaExtraInfo(duration : Option[Integer], notes : Option[String] )
+case class MizvaExtraInfo(duration : Option[Integer], quality : Option[Integer], notes : Option[String] )
 case class ObligationUI(mizva : String, user : String, reminderHour : Option[String], extraInfo : Option[ExtraInfo])
 case class Obligation(_id : String, mizva : String, user: String, reminderHour : Option[String], extraInfo: Option[ExtraInfo])
 case class UserMizvaUI(mizva : String,  extraInfo : Option[MizvaExtraInfo])
-
+case class UserMizvaOutUI(id : String, reported : String, mizva : String,  extraInfo : Option[MizvaExtraInfo])
 
 object PostgresObject {
   lazy val client = MongoClient()
@@ -62,6 +62,23 @@ object PostgresObject {
 
 
 class UserPostgresPersistence (db1 : String, user: String, password : String, schema : String, db : Option[Database] = None, host: String = "localhost", port : String = "5432")   extends PostgresUtils{
+  implicit val formats1 = DefaultFormats
+
+  def getUserMizvas(user: String) = {
+    var res = ArrayBuffer.empty[UserMizvaOutUI]
+    val rs = gconn.createStatement().executeQuery(s"select * from user_mizvas where username = '$user'")
+    while (rs.next()) {
+
+      val cur : UserMizvaUI = getFromJson(rs.getString("data"))
+      res+=
+        UserMizvaOutUI(rs.getString("id"),rs.getString("reported"),
+            cur.mizva, cur.extraInfo)
+
+    }
+    rs.close()
+    res.toList
+  }
+
   val fooRef = db.map(x=>  x.ref("notifications"))
 
   def addObligation(o: ObligationUI) = {
@@ -97,7 +114,7 @@ class UserPostgresPersistence (db1 : String, user: String, password : String, sc
 
 
   def cs = gconn.createStatement()
-  implicit val formats1 = DefaultFormats
+
 
   val conn = PostgresObject.getConn(db1, user, password, schema, host,port)
 
@@ -192,7 +209,7 @@ class UserPostgresPersistence (db1 : String, user: String, password : String, sc
 //    if (user == "test")
 //      s.execute("""alter user test set search_path = 'test'""");
 
-    s.execute(s"""CREATE TABLE IF NOT EXISTS $user_mizvas (username varchar(50), mizva varchar(50),  duration int, quality int, notes varchar(400), created timestamp );""".stripMargin)
+    s.execute(s"""CREATE TABLE IF NOT EXISTS $user_mizvas (id varchar CONSTRAINT ${user_mizvas}key PRIMARY KEY, username varchar(50), mizva varchar(50),  duration int, quality int, notes varchar(400), created timestamp );""".stripMargin)
     s.execute(s"""CREATE TABLE IF NOT EXISTS $obligations (id varchar CONSTRAINT ${obligations}key PRIMARY KEY, username varchar(50), mizva varchar(50),  data  json);""".stripMargin)
     s.execute(s"""CREATE TABLE IF NOT EXISTS $mizvas (id varchar CONSTRAINT ${mizvas}key PRIMARY KEY, data  json);""".stripMargin)
     s.execute(s"""CREATE TABLE IF NOT EXISTS $users (id varchar CONSTRAINT ${users}key PRIMARY KEY, data  json);""".stripMargin)
@@ -510,8 +527,9 @@ case class SaveTable(table : String, p : UserPostgresPersistence) {
 
   def insertUserMizva (user : String,  x : UserMizvaUI): Unit = {
     //username varchar(50), mizva varchar(50),  duration int, quality int, notes varchar(400), created timestamp
-    p.executeUpdate(s"insert into $table values ('${user}','${x.mizva}', ${x.extraInfo.map{y => y.duration}.getOrElse(0)}" +
-      s", '${x.extraInfo.map{y => y.duration}.getOrElse("")}', now())")
+    p.executeUpdate(s"insert into $table values ('${UUID.randomUUID().toString}', '${user}','${x.mizva}', ${x.extraInfo.map{y => y.duration}.getOrElse(Some(0)).get}, " +
+      s" ${x.extraInfo.map{y => y.quality}.getOrElse(Some(0)).get}, '${x.extraInfo.map{y => y.notes}.getOrElse(Some("")).get}', now())"
+     )
 
   }
 
@@ -596,6 +614,10 @@ trait PostgresUtils  {
      """.stripMargin
 
   def badgeSql = s"""(COALESCE(($users.data->>'badge')::integer,1))"""
+
+  def getFromJson[T](data : String)(implicit man: Manifest[T]): T = {
+    parse(data).extract[T]
+  }
 
   def getRST[T](sql : String)(implicit man: Manifest[T]): List[T] = {
     val l = getRS(sql)

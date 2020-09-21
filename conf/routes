@@ -84,7 +84,7 @@ POST     /api/users/:id/obligations                           controllers.UserCo
 
 
 ###
-#  summary: add campaign to provider
+#  summary: add mizva done for the user
 #  parameters:
 #    - name: body
 #      schema:
@@ -97,11 +97,24 @@ POST     /api/users/:id/obligations                           controllers.UserCo
 #    200:
 #      description: success
 ###
-PUT     /api/users/:id/mizva                           controllers.UserController.addUserMizva(id)
+POST     /api/users/:id/mizva                           controllers.UserController.addUserMizva(id)
 
 
 ###
-#  summary: get user details, valid only for same user as current user (checked by token)
+#  summary: get user reported mizvas actually done
+#  parameters:
+#    - name: token
+#      in: header
+#      type: string
+#      required: true
+#  responses:
+#    200:
+#      description: success
+###
+GET     /api/users/:id/mizva                           controllers.UserController.getUserMizvas(id)
+
+###
+#  summary: get all the obligations the user took on himself (checked by token)
 #  parameters:
 #    - name: token
 #      in: header
